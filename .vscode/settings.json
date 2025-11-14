@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "A Folded Journey.sln"
+    "dotnet.defaultSolution": "A-Folded-Journey.sln"
 }
