@@ -13,6 +13,10 @@ public class SceneTransition : MonoBehaviour
     public float fadeDuration = 1f;          // 渐隐持续时间
     public Color fadeColor = Color.black;    // 渐隐颜色
     
+    [Header("音频设置")]
+    public AudioSource backgroundAudio;      // 背景音乐AudioSource
+    public bool fadeAudio = true;            // 是否启用音频渐隐
+    
     private Transform player;
     private bool hasTriggered = false;
     private GameObject fadeObject;
@@ -50,19 +54,44 @@ public class SceneTransition : MonoBehaviour
         CanvasGroup canvasGroup = fadeObject.GetComponent<CanvasGroup>();
         canvasGroup.alpha = 0f;
         
-        // 渐隐（淡入黑屏）
+        // 获取音频初始音量
+        float initialAudioVolume = 0f;
+        bool hasAudio = fadeAudio && backgroundAudio != null && backgroundAudio.isPlaying;
+        
+        if (hasAudio)
+        {
+            initialAudioVolume = backgroundAudio.volume;
+        }
+        
+        // 同步渐隐画面和音频
         float elapsed = 0f;
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
             float progress = elapsed / fadeDuration;
+            
+            // 更新画面透明度
             canvasGroup.alpha = progress;
+            
+            // 同步更新音频音量
+            if (hasAudio)
+            {
+                backgroundAudio.volume = Mathf.Lerp(initialAudioVolume, 0f, progress);
+            }
+            
             yield return null;
         }
         
-        canvasGroup.alpha = 1f; // 确保完全黑屏
+        // 确保完全黑屏和静音
+        canvasGroup.alpha = 1f;
         
-        // 等待一帧确保黑屏完成
+        if (hasAudio)
+        {
+            backgroundAudio.volume = 0f;
+            backgroundAudio.Stop();
+        }
+        
+        // 等待一帧确保效果完成
         yield return null;
         
         // 加载目标场景

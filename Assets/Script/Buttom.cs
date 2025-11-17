@@ -8,6 +8,8 @@ public class Buttom : MonoBehaviour
 {
     [Header("渐入渐出设置")]
     public float fadeDuration = 1.0f; // 渐变持续时间
+    [Header("音频设置")]
+    public AudioSource backgroundAudio; // 背景音乐AudioSource
     
     private Image fadeImage; // 动态创建的遮罩
     private bool isTransitioning = false; // 防止重复触发
@@ -84,8 +86,8 @@ public class Buttom : MonoBehaviour
             CreateFadeMask();
         }
         
-        // 渐出到黑屏
-        yield return StartCoroutine(FadeOut());
+        // 同步渐出画面和音乐
+        yield return StartCoroutine(FadeOutWithAudio());
         
         // 获取当前场景的索引
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
@@ -118,8 +120,8 @@ public class Buttom : MonoBehaviour
             CreateFadeMask();
         }
         
-        // 渐出到黑屏
-        yield return StartCoroutine(FadeOut());
+        // 同步渐出画面和音乐
+        yield return StartCoroutine(FadeOutWithAudio());
         
         Debug.Log("退出游戏");
         
@@ -130,8 +132,8 @@ public class Buttom : MonoBehaviour
         #endif
     }
     
-    // 渐出效果：从透明到黑屏
-    private IEnumerator FadeOut()
+    // 同步渐出画面和音乐
+    private IEnumerator FadeOutWithAudio()
     {
         fadeImage.gameObject.SetActive(true);
         float timer = 0f;
@@ -139,20 +141,39 @@ public class Buttom : MonoBehaviour
         color.a = 0f;
         fadeImage.color = color;
         
+        float startVolume = backgroundAudio != null ? backgroundAudio.volume : 0f;
+        bool hasAudio = backgroundAudio != null && backgroundAudio.isPlaying;
+        
         while (timer < fadeDuration)
         {
             timer += Time.deltaTime;
-            float alpha = Mathf.Clamp01(timer / fadeDuration);
-            color.a = alpha;
+            float progress = Mathf.Clamp01(timer / fadeDuration);
+            
+            // 同步更新画面透明度
+            color.a = progress;
             fadeImage.color = color;
+            
+            // 同步更新音乐音量
+            if (hasAudio)
+            {
+                backgroundAudio.volume = Mathf.Lerp(startVolume, 0f, progress);
+            }
+            
             yield return null;
         }
         
+        // 最终状态
         color.a = 1f;
         fadeImage.color = color;
+        
+        if (hasAudio)
+        {
+            backgroundAudio.volume = 0f;
+            backgroundAudio.Stop();
+        }
     }
     
-    // 渐入效果：从黑屏到透明
+    // 渐入效果：从黑屏到透明（同步音乐）
     private IEnumerator FadeIn()
     {
         // 确保遮罩存在
@@ -166,20 +187,48 @@ public class Buttom : MonoBehaviour
         color.a = 1f;
         fadeImage.color = color;
         
+        // 准备音乐
+        bool hasAudio = backgroundAudio != null;
+        if (hasAudio)
+        {
+            backgroundAudio.volume = 0f;
+            if (!backgroundAudio.isPlaying)
+            {
+                backgroundAudio.Play();
+            }
+        }
+        
         float timer = 0f;
+        float targetVolume = hasAudio ? 1.0f : 0f;
         
         while (timer < fadeDuration)
         {
             timer += Time.deltaTime;
-            float alpha = 1f - Mathf.Clamp01(timer / fadeDuration);
+            float progress = Mathf.Clamp01(timer / fadeDuration);
+            float alpha = 1f - progress;
+            
+            // 同步更新画面透明度
             color.a = alpha;
             fadeImage.color = color;
+            
+            // 同步更新音乐音量
+            if (hasAudio)
+            {
+                backgroundAudio.volume = Mathf.Lerp(0f, targetVolume, progress);
+            }
+            
             yield return null;
         }
         
+        // 最终状态
         color.a = 0f;
         fadeImage.color = color;
         fadeImage.gameObject.SetActive(false);
+        
+        if (hasAudio)
+        {
+            backgroundAudio.volume = targetVolume;
+        }
     }
     
     // 清理资源
