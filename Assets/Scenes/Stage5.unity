@@ -920,6 +920,9 @@ MonoBehaviour:
   tiltSmoothness: 2
   rotationInertia: 0.8
   naturalSway: 2
+  bounceForceMultiplier: 0.8
+  minBounceVelocity: 2
+  enableBounce: 1
 --- !u!212 &745598662
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -999,9 +1002,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a667f2ea549ce7d4a905bdb40b8126c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  waterDrag: 0.5
-  waterAngularDrag: 0.5
-  buoyancy: 0.2
 --- !u!50 &745598665
 Rigidbody2D:
   serializedVersion: 4
@@ -1073,7 +1073,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75596ec4074a6a24391e2a9e1a165793, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  subtitleText: Floods are dangerous,so you must react quickly to obstacles!
+  subtitleText: Mei Zuo Wan!
   fontAsset: {fileID: 11400000, guid: 8a45e472d515148419dad1a7e05175d5, type: 2}
   fontSize: 48
   textColor: {r: 0, g: 0, b: 0, a: 1}
