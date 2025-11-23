@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.UI;
 
 public class SubtitleTrigger : MonoBehaviour
 {
@@ -10,76 +11,237 @@ public class SubtitleTrigger : MonoBehaviour
     public float fadeDuration = 1f;
     public float triggerDistance = 3f;
     public float maxViewDistance = 10f;
+    public Color textColor = Color.white;
 
-    private Transform player;
+    [Header("玩家绑定")]
+    public Transform player; // 直接在Inspector中绑定玩家
+
     private Transform cameraTransform;
     private Color originalColor;
-    private bool isPlayerInRange = false;
     private Coroutine currentFadeCoroutine;
+
+    private enum SubtitleState { Hidden, FadingIn, Visible, FadingOut }
+    private SubtitleState currentState = SubtitleState.Hidden;
 
     void Start()
     {
-        // 自动查找玩家和相机
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
-        cameraTransform = Camera.main?.transform;
+        InitializeSubtitleSystem();
+    }
+
+    void InitializeSubtitleSystem()
+    {
+        // 查找相机
+        FindCamera();
         
+        // 检查玩家引用
+        if (player == null)
+        {
+            // 尝试自动查找作为备用
+            TryFindPlayerBackup();
+        }
+        // 确保字幕文本组件存在
+        if (subtitleText == null)
+        {
+            CreateSubtitleUI();
+        }
+        else
+        {
+            InitializeSubtitleText();
+        }
+    }
+
+    void FindCamera()
+    {
+        // 查找相机
+        if (Camera.main != null)
+        {
+            cameraTransform = Camera.main.transform;
+        }
+        else
+        {
+            Camera cam = FindObjectOfType<Camera>();
+            if (cam != null)
+            {
+                cameraTransform = cam.transform;
+            }
+        }
+    }
+
+    void TryFindPlayerBackup()
+    {
+        // 备用方案：尝试自动查找玩家
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+        }
+        else
+        {
+            playerObj = GameObject.Find("Player");
+            if (playerObj != null)
+            {
+                player = playerObj.transform;
+            }
+        }
+    }
+
+    void InitializeSubtitleText()
+    {
         if (subtitleText != null)
         {
-            originalColor = subtitleText.color;
-            // 初始状态：完全透明
-            subtitleText.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
             subtitleText.text = subtitleContent;
+            originalColor = textColor;
+            subtitleText.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
             subtitleText.gameObject.SetActive(true);
+            Debug.Log("字幕文本初始化完成");
         }
-     
     }
 
     void Update()
     {
-        if (player == null || subtitleText == null || cameraTransform == null) return;
-
-        // 计算距离
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        float distanceToCamera = Vector3.Distance(transform.position, cameraTransform.position);
-
-        bool wasInRange = isPlayerInRange;
-        isPlayerInRange = distanceToPlayer <= triggerDistance;
-
-        // 如果离相机太远，强制隐藏
-        if (distanceToCamera > maxViewDistance)
+        // 检查必要的组件
+        if (!AreComponentsValid())
         {
-            if (subtitleText.color.a > 0.01f)
-            {
-                FadeToAlpha(0f);
-            }
             return;
         }
 
-   
+        // 计算距离并更新字幕状态
+        UpdateSubtitleState();
+    }
 
-        
-        // 额外检查：如果在范围内但Alpha值很低，强制淡入
-        if (isPlayerInRange && subtitleText.color.a < 0.1f && currentFadeCoroutine == null)
+    bool AreComponentsValid()
+    {
+        if (player == null)
         {
-            
-            FadeToAlpha(1f);
+            return false;
         }
+        if (subtitleText == null)
+        {
+            return false;
+        }
+        if (cameraTransform == null)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    void UpdateSubtitleState()
+    {
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        float distanceToCamera = Vector3.Distance(transform.position, cameraTransform.position);
+
+        // 检查是否在视野内
+        bool isInView = IsInCameraView();
+        bool shouldBeVisible = distanceToPlayer <= triggerDistance && 
+                              distanceToCamera <= maxViewDistance &&
+                              isInView;
+
+        // 状态转换逻辑
+        switch (currentState)
+        {
+            case SubtitleState.Hidden:
+                if (shouldBeVisible)
+                {
+                    FadeToAlpha(1f);
+                    currentState = SubtitleState.FadingIn;
+                }
+                break;
+
+            case SubtitleState.FadingIn:
+                if (!shouldBeVisible)
+                {
+                    FadeToAlpha(0f);
+                    currentState = SubtitleState.FadingOut;
+                }
+                break;
+
+            case SubtitleState.Visible:
+                if (!shouldBeVisible)
+                {
+                    FadeToAlpha(0f);
+                    currentState = SubtitleState.FadingOut;
+                }
+                break;
+
+            case SubtitleState.FadingOut:
+                if (shouldBeVisible)
+                {
+                    FadeToAlpha(1f);
+                    currentState = SubtitleState.FadingIn;
+                }
+                break;
+        }
+    }
+
+    bool IsInCameraView()
+    {
+        if (cameraTransform == null) return false;
+        
+        Vector3 directionToCamera = (cameraTransform.position - transform.position).normalized;
+        float dotProduct = Vector3.Dot(cameraTransform.forward, -directionToCamera);
+        return dotProduct > 0.3f;
+    }
+
+    void CreateSubtitleUI()
+    {
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            canvas = CreateCanvas();
+        }
+
+        GameObject subtitleObj = new GameObject("SubtitleText");
+        subtitleObj.transform.SetParent(canvas.transform);
+        subtitleText = subtitleObj.AddComponent<TextMeshProUGUI>();
+        
+        InitializeSubtitleText();
+        ConfigureTextStyle(subtitleObj);
+    }
+
+    Canvas CreateCanvas()
+    {
+        GameObject canvasObj = new GameObject("SubtitleCanvas");
+        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        
+        canvasObj.AddComponent<GraphicRaycaster>();
+        
+        return canvas;
+    }
+
+    void ConfigureTextStyle(GameObject textObject)
+    {
+        if (subtitleText == null) return;
+
+        subtitleText.alignment = TextAlignmentOptions.Center;
+        subtitleText.fontSize = 28;
+        subtitleText.enableWordWrapping = true;
+
+        RectTransform rect = textObject.GetComponent<RectTransform>();
+        rect.anchoredPosition = new Vector2(0, -150);
+        rect.sizeDelta = new Vector2(800, 60);
+        rect.anchorMin = new Vector2(0.5f, 0f);
+        rect.anchorMax = new Vector2(0.5f, 0f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
     }
 
     void FadeToAlpha(float targetAlpha)
     {
-        // 如果目标Alpha和当前差不多，就不执行
+        if (subtitleText == null) return;
+
         if (Mathf.Abs(subtitleText.color.a - targetAlpha) < 0.05f)
         {
-            
             return;
         }
 
-        // 停止之前的淡入淡出
         if (currentFadeCoroutine != null)
         {
             StopCoroutine(currentFadeCoroutine);
-            
         }
 
         currentFadeCoroutine = StartCoroutine(FadeRoutine(targetAlpha));
@@ -87,44 +249,46 @@ public class SubtitleTrigger : MonoBehaviour
 
     IEnumerator FadeRoutine(float targetAlpha)
     {
-        
+        if (subtitleText == null) yield break;
 
         float startAlpha = subtitleText.color.a;
         float elapsed = 0f;
 
-        while (elapsed < fadeDuration)
+        if (!subtitleText.gameObject.activeInHierarchy)
+            subtitleText.gameObject.SetActive(true);
+
+        while (elapsed < fadeDuration && subtitleText != null)
         {
             elapsed += Time.deltaTime;
-            float progress = elapsed / fadeDuration;
+            float progress = Mathf.Clamp01(elapsed / fadeDuration);
             float currentAlpha = Mathf.Lerp(startAlpha, targetAlpha, progress);
 
-            // 确保文本在淡入过程中是激活的
-            if (currentAlpha > 0.01f && !subtitleText.gameObject.activeInHierarchy)
-                subtitleText.gameObject.SetActive(true);
-
             subtitleText.color = new Color(originalColor.r, originalColor.g, originalColor.b, currentAlpha);
-            
             yield return null;
         }
 
-        // 确保最终状态正确
-        subtitleText.color = new Color(originalColor.r, originalColor.g, originalColor.b, targetAlpha);
-        
-        // 如果完全透明，可以禁用对象（可选）
-        if (targetAlpha < 0.01f)
-            subtitleText.gameObject.SetActive(false);
+        if (subtitleText != null)
+        {
+            subtitleText.color = new Color(originalColor.r, originalColor.g, originalColor.b, targetAlpha);
+            
+            if (targetAlpha < 0.1f)
+            {
+                currentState = SubtitleState.Hidden;
+            }
+            else
+            {
+                currentState = SubtitleState.Visible;
+            }
+        }
         
         currentFadeCoroutine = null;
-        
     }
 
     void OnDrawGizmosSelected()
     {
-        // 绘制触发范围（黄色）
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, triggerDistance);
 
-        // 绘制最大可视范围（蓝色）
         Gizmos.color = new Color(0, 0.5f, 1f, 0.3f);
         Gizmos.DrawWireSphere(transform.position, maxViewDistance);
     }
