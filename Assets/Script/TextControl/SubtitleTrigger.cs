@@ -28,17 +28,10 @@ public class SubtitleTrigger : MonoBehaviour
             originalColor = subtitleText.color;
             // 初始状态：完全透明
             subtitleText.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
-            subtitleText.text = subtitleContent; // 预先设置文字
+            subtitleText.text = subtitleContent;
+            subtitleText.gameObject.SetActive(true);
         }
-        else
-        {
-            Debug.LogError("请将TextMeshPro文本拖拽到Subtitle Text字段！");
-        }
-
-        if (player == null)
-            Debug.LogError("找不到带有Player标签的玩家对象！");
-        
-        
+     
     }
 
     void Update()
@@ -46,8 +39,7 @@ public class SubtitleTrigger : MonoBehaviour
         if (player == null || subtitleText == null || cameraTransform == null) return;
 
         // 计算距离
-        float distanceToPlayer = Vector2.Distance(new Vector2(transform.position.x, transform.position.y), 
-                                                 new Vector2(player.position.x, player.position.y));
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
         float distanceToCamera = Vector3.Distance(transform.position, cameraTransform.position);
 
         bool wasInRange = isPlayerInRange;
@@ -58,38 +50,45 @@ public class SubtitleTrigger : MonoBehaviour
         {
             if (subtitleText.color.a > 0.01f)
             {
-                FadeSubtitle(0f);
+                FadeToAlpha(0f);
             }
             return;
         }
 
-        // 状态变化处理
-        if (isPlayerInRange != wasInRange)
+   
+
+        
+        // 额外检查：如果在范围内但Alpha值很低，强制淡入
+        if (isPlayerInRange && subtitleText.color.a < 0.1f && currentFadeCoroutine == null)
         {
-            if (isPlayerInRange)
-            {
-                // 玩家进入范围：淡入
-                FadeSubtitle(1f);
-            }
-            else
-            {
-                // 玩家离开范围：淡出
-                FadeSubtitle(0f);
-            }
+            
+            FadeToAlpha(1f);
         }
     }
 
-    void FadeSubtitle(float targetAlpha)
+    void FadeToAlpha(float targetAlpha)
     {
+        // 如果目标Alpha和当前差不多，就不执行
+        if (Mathf.Abs(subtitleText.color.a - targetAlpha) < 0.05f)
+        {
+            
+            return;
+        }
+
         // 停止之前的淡入淡出
         if (currentFadeCoroutine != null)
+        {
             StopCoroutine(currentFadeCoroutine);
+            
+        }
 
         currentFadeCoroutine = StartCoroutine(FadeRoutine(targetAlpha));
     }
 
     IEnumerator FadeRoutine(float targetAlpha)
     {
+        
+
         float startAlpha = subtitleText.color.a;
         float elapsed = 0f;
 
@@ -99,13 +98,24 @@ public class SubtitleTrigger : MonoBehaviour
             float progress = elapsed / fadeDuration;
             float currentAlpha = Mathf.Lerp(startAlpha, targetAlpha, progress);
 
+            // 确保文本在淡入过程中是激活的
+            if (currentAlpha > 0.01f && !subtitleText.gameObject.activeInHierarchy)
+                subtitleText.gameObject.SetActive(true);
+
             subtitleText.color = new Color(originalColor.r, originalColor.g, originalColor.b, currentAlpha);
+            
             yield return null;
         }
 
         // 确保最终状态正确
         subtitleText.color = new Color(originalColor.r, originalColor.g, originalColor.b, targetAlpha);
+        
+        // 如果完全透明，可以禁用对象（可选）
+        if (targetAlpha < 0.01f)
+            subtitleText.gameObject.SetActive(false);
+        
         currentFadeCoroutine = null;
+        
     }
 
     void OnDrawGizmosSelected()

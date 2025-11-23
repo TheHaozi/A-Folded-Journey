@@ -973,6 +973,7 @@ GameObject:
   - component: {fileID: 1019771675}
   - component: {fileID: 1019771678}
   - component: {fileID: 1019771677}
+  - component: {fileID: 1019771681}
   - component: {fileID: 1019771676}
   - component: {fileID: 1019771679}
   - component: {fileID: 1019771680}
@@ -1219,6 +1220,22 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1019771681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1019771674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffca7c5c2641aa949b2bf2e97bb3b572, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetButton: {fileID: 1019771676}
+  fadeOutDuration: 2
+  disableButtonAfterClick: 1
+  specificSceneName: 
 --- !u!1 &1026100779
 GameObject:
   m_ObjectHideFlags: 0
@@ -1377,7 +1394,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1212906183}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 439b0ab7ea39df741acf2119a6315e8d, type: 3}
@@ -1909,6 +1926,7 @@ GameObject:
   - component: {fileID: 1773740550}
   - component: {fileID: 1773740553}
   - component: {fileID: 1773740552}
+  - component: {fileID: 1773740556}
   - component: {fileID: 1773740551}
   - component: {fileID: 1773740554}
   - component: {fileID: 1773740555}
@@ -2155,6 +2173,22 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1773740556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1773740549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffca7c5c2641aa949b2bf2e97bb3b572, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetButton: {fileID: 1773740551}
+  fadeOutDuration: 2
+  disableButtonAfterClick: 1
+  specificSceneName: 
 --- !u!1 &1930310195
 GameObject:
   m_ObjectHideFlags: 0

@@ -3,9 +3,13 @@ using UnityEngine;
 public class RipplePushEffect : MonoBehaviour
 {
     [Header("推动设置")]
-    public float pushForce = 18.5f;           // 推力大小
-    public float pushDuration = 8;            // 推力持续时间
-    public float maxPushDistance = 20f;       // 最大作用距离
+    public float pushForce = 18.5f;
+    public float pushDuration = 8;
+    public float maxPushDistance = 20f;
+    
+    [Header("碰撞检测")]
+    public LayerMask obstacleLayers = -1; // 障碍物层
+    public float obstacleCheckRadius = 1f; // 障碍物检测半径
     
     [Header("船只旋转设置")]
     public float maxTiltAngle = 25f;          // 最大倾斜角度
@@ -88,6 +92,15 @@ public class RipplePushEffect : MonoBehaviour
         // 检查是否在作用范围内
         if (distance > maxPushDistance) return;
         
+        // 功能1：检查点击位置是否有碰撞箱（障碍物）
+        Collider2D obstacle = Physics2D.OverlapCircle(clickWorldPos, obstacleCheckRadius, obstacleLayers);
+        if (obstacle != null)
+        {
+            Debug.Log($"🚫 无法推动：点击位置有障碍物 {obstacle.gameObject.name}");
+            return;
+        }
+        
+        // 原有的推动逻辑...
         // 停止任何现有的反弹
         isBouncing = false;
         bounceVelocity = Vector2.zero;
@@ -119,7 +132,7 @@ public class RipplePushEffect : MonoBehaviour
         // 设置初始速度
         currentVelocity = pushDirection * currentForce;
     }
-    
+    //-------------------
     void HandlePushMovement()
     {
         pushTimer += Time.deltaTime;

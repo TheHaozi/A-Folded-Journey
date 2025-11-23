@@ -563,7 +563,7 @@ MonoBehaviour:
   smoothSpeed: 0.1
   offset: {x: 0, y: 0, z: -10}
   maxCameraSpeed: 500
-  useBounds: 1
+  useBounds: 0
   cameraBounds:
     serializedVersion: 2
     x: -10
@@ -600,7 +600,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1e7361ed64ee0c4689462320f817854, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fadeDuration: 4.5
+  fadeDuration: 3
   backgroundAudio: {fileID: 418475667}
 --- !u!4 &418475666
 Transform:
@@ -627,9 +627,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: d8b0d34ce1ba581428f6b39405c7ff42, type: 3}
+  m_audioClip: {fileID: 8300000, guid: d339168def751fd4f827aaf14fadc1e2, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.25
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -881,6 +881,50 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &694330049
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 694330051}
+  - component: {fileID: 694330050}
+  m_Layer: 0
+  m_Name: RestartManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &694330050
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 694330049}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59990a89f431c184ea1685f9a52fe8fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &694330051
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 694330049}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 658.70636, y: 458.1708, z: -5.352718}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &745598659
 GameObject:
   m_ObjectHideFlags: 0
@@ -916,6 +960,10 @@ MonoBehaviour:
   pushForce: 8
   pushDuration: 3
   maxPushDistance: 20
+  obstacleLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  obstacleCheckRadius: 1
   maxTiltAngle: 25
   tiltSmoothness: 2
   rotationInertia: 0.8
@@ -1193,7 +1241,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetSceneName: Story5
   triggerDistance: 8
-  fadeDuration: 6
+  fadeDuration: 3
   fadeColor: {r: 0, g: 0, b: 0, a: 1}
   backgroundAudio: {fileID: 418475667}
   fadeAudio: 1
@@ -1633,3 +1681,4 @@ SceneRoots:
   - {fileID: 1666919911}
   - {fileID: 418475666}
   - {fileID: 956224388}
+  - {fileID: 694330051}
