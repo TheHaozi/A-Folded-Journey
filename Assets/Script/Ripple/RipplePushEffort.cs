@@ -84,53 +84,57 @@ public class RipplePushEffect : MonoBehaviour
     
     void CreateRipplePush()
     {
-        Vector2 clickWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 playerPos = transform.position;
-        
-        float distance = Vector2.Distance(clickWorldPos, playerPos);
-        
-        // 检查是否在作用范围内
-        if (distance > maxPushDistance) return;
-        
-        // 功能1：检查点击位置是否有碰撞箱（障碍物）
-        Collider2D obstacle = Physics2D.OverlapCircle(clickWorldPos, obstacleCheckRadius, obstacleLayers);
-        if (obstacle != null)
-        {
-            Debug.Log($"🚫 无法推动：点击位置有障碍物 {obstacle.gameObject.name}");
-            return;
-        }
-        
-        // 原有的推动逻辑...
-        // 停止任何现有的反弹
-        isBouncing = false;
-        bounceVelocity = Vector2.zero;
-        
-        // 计算推力方向（从点击点指向玩家）
-        pushDirection = (playerPos - clickWorldPos).normalized;
-        
-        // 根据距离计算推力大小（越近推力越大）
-        float distanceFactor = 1f - (distance / maxPushDistance);
-        currentForce = pushForce * distanceFactor;
-        
-        // 计算目标旋转角度（基于推力方向）
-        float pushAngle = Mathf.Atan2(pushDirection.y, pushDirection.x) * Mathf.Rad2Deg;
-        targetRotation = pushAngle + 90f;
-        
-        // 根据距离调整倾斜幅度
-        float tiltMultiplier = distanceFactor * rotationInertia;
-        targetRotation = Mathf.LerpAngle(currentRotation, targetRotation, tiltMultiplier);
-        
-        // 限制最大倾斜角度
-        float rotationDelta = Mathf.DeltaAngle(currentRotation, targetRotation);
-        rotationDelta = Mathf.Clamp(rotationDelta, -maxTiltAngle, maxTiltAngle);
-        targetRotation = currentRotation + rotationDelta;
-        
-        // 开始推动
-        isBeingPushed = true;
-        pushTimer = 0f;
-        
-        // 设置初始速度
-        currentVelocity = pushDirection * currentForce;
+    Vector2 clickWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+    Vector2 playerPos = transform.position;
+    
+    float distance = Vector2.Distance(clickWorldPos, playerPos);
+    
+    // 检查是否在作用范围内
+    if (distance > maxPushDistance) return;
+    
+    // 检查点击位置是否有碰撞箱（障碍物）
+    Collider2D obstacle = Physics2D.OverlapCircle(clickWorldPos, obstacleCheckRadius, obstacleLayers);
+    if (obstacle != null)
+    {
+        Debug.Log($"🚫 无法推动：点击位置有障碍物 {obstacle.gameObject.name}");
+        return;
+    }
+    
+    // 原有的玩家推动逻辑...
+    // 停止任何现有的反弹
+    isBouncing = false;
+    bounceVelocity = Vector2.zero;
+    
+    // 计算推力方向（从点击点指向玩家）
+    pushDirection = (playerPos - clickWorldPos).normalized;
+    
+    // 根据距离计算推力大小（越近推力越大）
+    float distanceFactor = 1f - (distance / maxPushDistance);
+    currentForce = pushForce * distanceFactor;
+    
+    // 计算目标旋转角度（基于推力方向）
+    float pushAngle = Mathf.Atan2(pushDirection.y, pushDirection.x) * Mathf.Rad2Deg;
+    targetRotation = pushAngle + 90f;
+    
+    // 根据距离调整倾斜幅度
+    float tiltMultiplier = distanceFactor * rotationInertia;
+    targetRotation = Mathf.LerpAngle(currentRotation, targetRotation, tiltMultiplier);
+    
+    // 限制最大倾斜角度
+    float rotationDelta = Mathf.DeltaAngle(currentRotation, targetRotation);
+    rotationDelta = Mathf.Clamp(rotationDelta, -maxTiltAngle, maxTiltAngle);
+    targetRotation = currentRotation + rotationDelta;
+    
+    // 开始推动
+    isBeingPushed = true;
+    pushTimer = 0f;
+    
+    // 设置初始速度
+    currentVelocity = pushDirection * currentForce;
+    
+    // ========== 新增的代码：推动范围内的浮木 ==========
+    PushNearbyFloatingLogs(clickWorldPos, distanceFactor);
+    // ========== 新增代码结束 ==========
     }
     //-------------------
     void HandlePushMovement()
@@ -242,5 +246,54 @@ public class RipplePushEffect : MonoBehaviour
         targetRotation = bounceAngle + 90f;
         
         Debug.Log($"Bounce! Incoming: {incomingVelocity.magnitude}, Bounce: {bounceVelocity.magnitude}");
+
+        
     }
+
+    void AffectNearbyFloatingLogs(Vector2 pushOrigin)
+    {
+        Collider2D[] nearbyLogs = Physics2D.OverlapCircleAll(pushOrigin, maxPushDistance * 0.5f);
+        foreach (Collider2D collider in nearbyLogs)
+        {
+            FloatingLog log = collider.GetComponent<FloatingLog>();
+            if (log != null)
+            {
+                Vector2 directionToLog = ((Vector2)log.transform.position - pushOrigin).normalized;
+                float distance = Vector2.Distance(pushOrigin, log.transform.position);
+                float force = pushForce * (1f - distance / maxPushDistance);
+            
+                log.ApplyPushForce(directionToLog, force);
+            }
+        }
+    }
+    // ========== 新增的方法：推动附近浮木 ==========
+    void PushNearbyFloatingLogs(Vector2 pushOrigin, float distanceFactor)
+    {
+    // 检测推动范围内的所有浮木
+    float pushRadius = maxPushDistance * 0.8f; // 推动半径（比玩家推动范围稍大）
+    Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(pushOrigin, pushRadius);
+    
+    foreach (Collider2D collider in nearbyColliders)
+    {
+        FloatingLog floatingLog = collider.GetComponent<FloatingLog>();
+        if (floatingLog != null)
+        {
+            // 计算浮木相对于推动中心的方向
+            Vector2 directionToLog = ((Vector2)floatingLog.transform.position - pushOrigin).normalized;
+            
+            // 计算浮木与推动中心的距离
+            float logDistance = Vector2.Distance(pushOrigin, floatingLog.transform.position);
+            float logDistanceFactor = 1f - (logDistance / pushRadius);
+            
+            // 计算推动力（基于距离和原始推动力）
+            float logPushForce = currentForce * logDistanceFactor * 0.6f; // 浮木受力比玩家小
+            
+            // 应用推动力
+            floatingLog.ApplyPushForce(directionToLog, logPushForce);
+            
+            Debug.Log($"推动浮木，力度: {logPushForce}");
+        }
+    }
+    }
+
 }

@@ -971,7 +971,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75596ec4074a6a24391e2a9e1a165793, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  subtitleText: Mei Zuo Wan!
+  subtitleText: "The sewer system is very complicated,so \nyou need to take a a longer
+    route to get out."
   fontAsset: {fileID: 11400000, guid: 8a45e472d515148419dad1a7e05175d5, type: 2}
   fontSize: 48
   textColor: {r: 0, g: 0, b: 0, a: 1}

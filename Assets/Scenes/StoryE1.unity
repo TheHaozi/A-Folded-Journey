@@ -829,6 +829,7 @@ MonoBehaviour:
     - StoryE1
     - StoryE2
     - StoryE3
+    - StoryE4
     - The End
     bgmClip: {fileID: 8300000, guid: 439b0ab7ea39df741acf2119a6315e8d, type: 3}
     volume: 1

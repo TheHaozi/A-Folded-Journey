@@ -394,6 +394,8 @@ MonoBehaviour:
   fadeDuration: 1
   triggerDistance: 3
   maxViewDistance: 10
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  player: {fileID: 0}
 --- !u!4 &306045224
 Transform:
   m_ObjectHideFlags: 0
@@ -925,7 +927,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75596ec4074a6a24391e2a9e1a165793, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  subtitleText: Mei Zuo Wan!
+  subtitleText: 'On the sea surface,any floating
+
+    object is free,so please go
+    ahead.'
   fontAsset: {fileID: 11400000, guid: 8a45e472d515148419dad1a7e05175d5, type: 2}
   fontSize: 48
   textColor: {r: 0, g: 0, b: 0, a: 1}
