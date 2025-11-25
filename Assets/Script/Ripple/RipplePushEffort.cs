@@ -487,4 +487,40 @@ bool CheckDebugShortcut()
             subtitleText.text = "";
         }
     }//HideSubtitleAfterDelay()
+
+    // 在 RipplePushEffect 类中添加：
+    public void PlayerDieByShark()
+    {
+        // 禁用玩家控制
+        enabled = false;
+        
+        // 停止移动
+        if (GetComponent<Rigidbody2D>() != null)
+        {
+            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        }
+
+        // 可以添加其他死亡效果，如粒子效果等
+        Debug.Log("💀 玩家被鲨鱼杀死");
+    }//PlayerDieByShark()
+
+    System.Collections.IEnumerator ReloadSceneWithDelay()
+    {
+    // 等待一帧让音效播放完成
+    yield return new WaitForSeconds(1f);
+    UnityEngine.SceneManagement.SceneManager.LoadScene(
+        UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }//ReloadSceneWithDelay()
+    
+    public void ResetPlayer()
+    {
+        // 重新启用玩家控制
+        enabled = true;
+        
+        // 重置玩家位置到起点
+        transform.position = Vector3.zero;
+        
+        // 重置其他状态
+        // ...
+    }
 }//class RipplePushEffect

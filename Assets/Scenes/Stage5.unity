@@ -1201,6 +1201,55 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1451969696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1451969698}
+  - component: {fileID: 1451969697}
+  m_Layer: 0
+  m_Name: Shark
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1451969697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1451969696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f334f2fdac8f694698c78b3fda9340e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sharkPrefab: {fileID: 4983377939669540651, guid: e50a492595e9c2a40b00194164ba8b9b, type: 3}
+  spawnDistanceFromPlayer: 300
+  maxSharks: 6
+  spawnCheckInterval: 5
+  enableDebugLogs: 0
+--- !u!4 &1451969698
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1451969696}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1491797898
 GameObject:
   m_ObjectHideFlags: 0
@@ -1215,7 +1264,6 @@ GameObject:
   - component: {fileID: 1491797901}
   - component: {fileID: 1491797905}
   - component: {fileID: 1491797904}
-  - component: {fileID: 1491797903}
   m_Layer: 0
   m_Name: OceanFunctionManager
   m_TagString: Untagged
@@ -1235,9 +1283,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcb365d4376fb084aaf6d5346fd89b97, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  oceanTexture: {fileID: 2800000, guid: 3edaf1abba117ae44adcaa516febee3b, type: 3}
+  oceanTexture: {fileID: 2800000, guid: b929637ec00c9dc4a8a26426a5150455, type: 3}
   chunkSize: 20
-  keepAliveDistance: 4
+  keepAliveDistance: 1
   playerController: {fileID: 819491567}
   showStatistics: 1
 --- !u!4 &1491797900
@@ -1288,34 +1336,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   centerPoint: {fileID: 1491797900}
   playerController: {fileID: 819491567}
---- !u!114 &1491797903
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1491797898}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f334f2fdac8f694698c78b3fda9340e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isChasing: 0
-  currentSpeed: 0
-  movementType: 0
-  speed: 0
-  chaseDistance: 0
-  wanderSpeed: 0
-  rotationSpeed: 0
-  maxChaseAngle: 30
-  chaseSound: {fileID: 0}
-  attackSound: {fileID: 0}
-  loopChaseSound: 0
-  maxSoundDistance: 50
-  minSoundVolume: 0.1
-  maxSoundVolume: 1
-  targetCamera: {fileID: 378133826}
-  destroyMargin: 2
 --- !u!114 &1491797904
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1328,11 +1348,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3637ee6f8b773194e8d78a441b5a13f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  beaconPrefab: {fileID: 3694374651934670683, guid: 6118939acb8537544aea4f80dfea6fbf, type: 3}
+  beaconPrefab: {fileID: 3225788213568755266, guid: ae2939e8bef1d0d45816ffe3b5702839, type: 3}
   beaconSpawnInterval: 100
   maxBeaconDistance: 800
   triggerDistanceOffset: 50
-  enableDebug: 1
+  predefinedColors: []
+  useRandomColors: 1
+  enableDebug: 0
 --- !u!114 &1491797905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1476,3 +1498,4 @@ SceneRoots:
   - {fileID: 956224388}
   - {fileID: 1120444198}
   - {fileID: 1491797900}
+  - {fileID: 1451969698}

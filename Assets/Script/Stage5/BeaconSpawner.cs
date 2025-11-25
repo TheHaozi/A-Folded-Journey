@@ -9,6 +9,10 @@ public class BeaconSpawner : MonoBehaviour
     public float maxBeaconDistance = 800f;
     public float triggerDistanceOffset = 50f;
 
+    [Header("颜色设置")]
+    public Color[] predefinedColors; // 可选的预定义颜色数组
+    public bool useRandomColors = true; // 是否使用随机颜色
+
     [Header("调试")]
     public bool enableDebug = true;
 
@@ -19,6 +23,25 @@ public class BeaconSpawner : MonoBehaviour
     void Start()
     {
         terrainManager = FindObjectOfType<OceanTerrainManager>();
+        
+        // 如果没有预定义颜色，设置一些默认的鲜艳颜色
+        if (predefinedColors == null || predefinedColors.Length == 0)
+        {
+            predefinedColors = new Color[]
+            {
+                Color.red,
+                Color.green,
+                Color.blue,
+                Color.yellow,
+                Color.magenta,
+                Color.cyan,
+                new Color(1f, 0.5f, 0f), // 橙色
+                new Color(0.5f, 0f, 1f), // 紫色
+                new Color(0f, 1f, 0.5f), // 春绿色
+                new Color(1f, 0f, 0.5f)  // 玫瑰红
+            };
+        }
+        
         if (enableDebug) Debug.Log("🚢 航标系统启动");
     }
 
@@ -144,6 +167,9 @@ public class BeaconSpawner : MonoBehaviour
         beacon.name = $"Beacon_{distance}m";
         beacon.transform.SetParent(transform);
 
+        // 设置航标颜色
+        SetBeaconColor(beacon, distance);
+
         if (enableDebug)
         {
             Debug.Log($"📍 成功生成 {distance} 米航标");
@@ -151,6 +177,74 @@ public class BeaconSpawner : MonoBehaviour
         }
 
         beacons.Add(beacon);
+    }
+
+    /// <summary>
+    /// 为航标设置随机颜色（排除灰色和黑色）
+    /// </summary>
+    void SetBeaconColor(GameObject beacon, int distance)
+    {
+        Renderer renderer = beacon.GetComponent<Renderer>();
+        if (renderer == null)
+        {
+            if (enableDebug) Debug.LogWarning($"⚠️ 航标 {distance} 米没有Renderer组件");
+            return;
+        }
+
+        Color randomColor = GetRandomNonGrayColor();
+        renderer.material.color = randomColor;
+
+        if (enableDebug) Debug.Log($"🎨 设置 {distance} 米航标颜色: {randomColor}");
+    }
+
+    /// <summary>
+    /// 获取非灰色和黑色的随机颜色
+    /// </summary>
+    Color GetRandomNonGrayColor()
+    {
+        if (useRandomColors && predefinedColors != null && predefinedColors.Length > 0)
+        {
+            // 从预定义颜色中随机选择
+            return predefinedColors[Random.Range(0, predefinedColors.Length)];
+        }
+        else
+        {
+            // 生成随机颜色，排除灰色和黑色
+            Color randomColor;
+            do
+            {
+                randomColor = new Color(
+                    Random.Range(0.3f, 1f),
+                    Random.Range(0.3f, 1f),
+                    Random.Range(0.3f, 1f)
+                );
+            } 
+            while (IsGrayColor(randomColor) || IsBlackColor(randomColor));
+            
+            return randomColor;
+        }
+    }
+
+    /// <summary>
+    /// 判断颜色是否为灰色（RGB分量相近）
+    /// </summary>
+    bool IsGrayColor(Color color)
+    {
+        float diff = Mathf.Max(
+            Mathf.Abs(color.r - color.g),
+            Mathf.Abs(color.g - color.b),
+            Mathf.Abs(color.b - color.r)
+        );
+        return diff < 0.2f; // 如果RGB分量差异小于0.2，认为是灰色
+    }
+
+    /// <summary>
+    /// 判断颜色是否为黑色（亮度很低）
+    /// </summary>
+    bool IsBlackColor(Color color)
+    {
+        float brightness = (color.r + color.g + color.b) / 3f;
+        return brightness < 0.2f; // 如果平均亮度小于0.2，认为是黑色
     }
 
     [ContextMenu("强制生成所有航标")]
@@ -185,5 +279,22 @@ public class BeaconSpawner : MonoBehaviour
                 Debug.Log($"   ❌ {distance}米航标未生成");
             }
         }
+    }
+
+    [ContextMenu("重新随机所有航标颜色")]
+    public void RandomizeAllBeaconColors()
+    {
+        foreach (GameObject beacon in beacons)
+        {
+            if (beacon != null)
+            {
+                Renderer renderer = beacon.GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.material.color = GetRandomNonGrayColor();
+                }
+            }
+        }
+        if (enableDebug) Debug.Log("🔄 所有航标颜色已重新随机");
     }
 }

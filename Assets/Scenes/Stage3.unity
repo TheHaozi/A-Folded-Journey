@@ -1027,6 +1027,62 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &85111420
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 85111422}
+  - component: {fileID: 85111421}
+  m_Layer: 0
+  m_Name: FloatingLogManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &85111421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 85111420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c704c9826069b8b4d9735762965e6c05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  logPrefab: {fileID: 9062139928654990297, guid: 681adbfe3d3012b499a10511ba4c0c3d, type: 3}
+  maxLogs: 3
+  spawnCheckInterval: 2
+  detectionAreaSize: {x: 64, y: 1400}
+  detectionAreaCenter: {x: 0, y: 600}
+  spawnDistance: 20
+  despawnDistance: 25
+  baseScale: 0.3
+  minScale: 0.1
+  maxScale: 0.5
+  availableSprites: []
+  showGizmos: 0
+--- !u!4 &85111422
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 85111420}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 275, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &111769929
 GameObject:
   m_ObjectHideFlags: 0
@@ -3343,8 +3399,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   subtitleText: {fileID: 1131179014}
-  subtitleContent: If this paper boat colliders with objects more than three times,it
-    will bedamaged.
+  subtitleContent: If this paper boat's durability turns to zero,it will be damaged.
   fadeDuration: 1
   triggerDistance: 20
   maxViewDistance: 250
@@ -7873,7 +7928,7 @@ MonoBehaviour:
   subtitleText: Floods are dangerous,so you must react quickly to obstacles!
   fontAsset: {fileID: 11400000, guid: 8a45e472d515148419dad1a7e05175d5, type: 2}
   fontSize: 48
-  textColor: {r: 0, g: 0, b: 0, a: 1}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
   fontStyle: 0
   alignment: 514
   screenPosition: {x: 0, y: -150}
@@ -12958,8 +13013,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: If this paper boat colliders with objects more than three times,it will
-    bedamaged.
+  m_text: If this paper boat's durability turns to zero,it will be damaged.
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8a45e472d515148419dad1a7e05175d5, type: 2}
   m_sharedMaterial: {fileID: 3803698249685306626, guid: 8a45e472d515148419dad1a7e05175d5, type: 2}
@@ -13677,7 +13731,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d823e881b0378d94f867b9254bda8918, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxCollisions: 3
+  maxCollisions: 30
   fadeDuration: 1
   livesText: {fileID: 1352498822}
   livesFormat: 'Durability: {0}'
@@ -14804,6 +14858,62 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1270488174
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1270488176}
+  - component: {fileID: 1270488175}
+  m_Layer: 0
+  m_Name: TinManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1270488175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1270488174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c704c9826069b8b4d9735762965e6c05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  logPrefab: {fileID: 9062139928654990297, guid: 2aedbdb2f2878824cb6ed56e88da2d4e, type: 3}
+  maxLogs: 3
+  spawnCheckInterval: 2
+  detectionAreaSize: {x: 64, y: 1400}
+  detectionAreaCenter: {x: 0, y: 600}
+  spawnDistance: 20
+  despawnDistance: 25
+  baseScale: 0.2
+  minScale: 0.2
+  maxScale: 0.2
+  availableSprites: []
+  showGizmos: 1
+--- !u!4 &1270488176
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1270488174}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 800, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1275849131
 GameObject:
   m_ObjectHideFlags: 0
@@ -24547,3 +24657,5 @@ SceneRoots:
   - {fileID: 956224388}
   - {fileID: 447494289}
   - {fileID: 860331805}
+  - {fileID: 85111422}
+  - {fileID: 1270488176}

@@ -1,350 +1,220 @@
 using UnityEngine;
+using System.Collections.Generic;
 
-public class SharkBehavior : MonoBehaviour
+public class SharkSpawner : MonoBehaviour
 {
-    [Header("行为状态")]
-    public bool isChasing = false;
-    public float currentSpeed = 0f;
-    public SharkMovementType movementType = SharkMovementType.AutoDetect;
+    [Header("生成设置")]
+    public GameObject sharkPrefab;
+    public float spawnDistanceFromPlayer = 300f; // 在玩家300米外生成
+    public int maxSharks = 6; // 全世界最多6只鲨鱼
+    public float spawnCheckInterval = 5f; // 每5秒检查一次生成
 
-    [Header("移动设置")]
-    public float speed = 3f;
-    public float chaseDistance = 100f;
-    public float wanderSpeed = 1f;
-    public float rotationSpeed = 2f;
-    public float maxChaseAngle = 30f; // 最大追逐角度偏移
+    [Header("调试")]
+    public bool enableDebugLogs = true;
 
-    [Header("音频设置")]
-    public AudioClip chaseSound;
-    public AudioClip attackSound;
-    public bool loopChaseSound = true;
-    public float maxSoundDistance = 50f;
-    public float minSoundVolume = 0.1f;
-    public float maxSoundVolume = 1f;
-
-    [Header("销毁设置")]
-    public Camera targetCamera;
-    public float destroyMargin = 2f; // 屏幕外多少距离后销毁
-
-    public enum SharkMovementType
-    {
-        AutoDetect,
-        Horizontal,
-        Vertical,
-        Free
-    }
-
-    private Transform player;
-    private Vector3 wanderDirection;
-    private float wanderChangeTime;
-    private SpriteRenderer spriteRenderer;
-    private AudioSource audioSource;
-    private bool hasPlayedAttackSound = false;
-    private Vector3 initialForward;
+    private List<GameObject> activeSharks = new List<GameObject>();
+    private OceanTerrainManager terrainManager;
+    private float spawnTimer = 0f;
 
     void Start()
     {
-        player = FindObjectOfType<RipplePushEffect>()?.transform;
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        audioSource = GetComponent<AudioSource>();
-        
-        if (audioSource == null)
+        terrainManager = FindObjectOfType<OceanTerrainManager>();
+        if (sharkPrefab == null)
         {
-            audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.spatialBlend = 1f; // 3D音效
+            Debug.LogError("❌ 需要分配鲨鱼预制体！");
         }
-
-        if (targetCamera == null)
-        {
-            targetCamera = Camera.main;
-        }
-
-        InitializeMovementType();
-        InitializeWander();
-    }
-
-    void InitializeMovementType()
-    {
-        if (movementType == SharkMovementType.AutoDetect)
-        {
-            // 根据贴图朝向自动检测移动类型
-            if (spriteRenderer != null && spriteRenderer.sprite != null)
-            {
-                // 检查贴图的宽高比来判断朝向
-                float aspectRatio = spriteRenderer.sprite.rect.width / spriteRenderer.sprite.rect.height;
-                if (aspectRatio > 1.2f)
-                {
-                    movementType = SharkMovementType.Horizontal;
-                }
-                else if (aspectRatio < 0.8f)
-                {
-                    movementType = SharkMovementType.Vertical;
-                }
-                else
-                {
-                    movementType = SharkMovementType.Free;
-                }
-            }
-            else
-            {
-                movementType = SharkMovementType.Free;
-            }
-        }
-
-        // 设置初始朝向
-        initialForward = transform.up;
-    }
-
-    void InitializeWander()
-    {
-        switch (movementType)
-        {
-            case SharkMovementType.Horizontal:
-                wanderDirection = Random.value > 0.5f ? Vector3.right : Vector3.left;
-                break;
-            case SharkMovementType.Vertical:
-                wanderDirection = Random.value > 0.5f ? Vector3.up : Vector3.down;
-                break;
-            case SharkMovementType.Free:
-                wanderDirection = Random.insideUnitCircle.normalized;
-                break;
-        }
-        
-        wanderChangeTime = Time.time + Random.Range(2f, 5f);
     }
 
     void Update()
     {
-        if (player == null) return;
+        if (sharkPrefab == null || DistanceManager.Instance == null || terrainManager == null) return;
 
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        spawnTimer += Time.deltaTime;
 
-        // 检查是否在摄像机视野外
-        if (IsOutsideCameraView())
+        // 定期检查生成条件
+        if (spawnTimer >= spawnCheckInterval)
         {
-            DestroyShark();
-            return;
+            TrySpawnSharks();
+            CleanupSharksInUnloadedChunks();
+            spawnTimer = 0f;
         }
 
-        if (distanceToPlayer <= chaseDistance)
+        // 调试信息
+        if (enableDebugLogs && Time.frameCount % 180 == 0)
         {
-            if (!isChasing)
+            Debug.Log($"🦈 鲨鱼状态: {activeSharks.Count}/{maxSharks} 只活跃");
+        }
+    }
+
+    void TrySpawnSharks()
+    {
+        // 如果已经达到最大数量，不生成
+        if (activeSharks.Count >= maxSharks) return;
+
+        Vector3 playerPos = DistanceManager.Instance.PlayerPosition;
+        Vector2Int playerChunk = terrainManager.GetChunkPosition(playerPos);
+
+        // 获取玩家周围已加载的区块
+        var loadedChunks = terrainManager.GetActiveChunks();
+        
+        int sharksToSpawn = maxSharks - activeSharks.Count;
+        int spawnedCount = 0;
+
+        foreach (var chunkPair in loadedChunks)
+        {
+            if (spawnedCount >= sharksToSpawn) break;
+
+            Vector2Int chunkPos = chunkPair.Key;
+            
+            // 只在远离玩家的区块生成
+            if (IsChunkFarFromPlayer(chunkPos, playerChunk))
             {
-                StartChasing();
+                if (TrySpawnSharkInChunk(chunkPos))
+                {
+                    spawnedCount++;
+                }
             }
-            ChasePlayer();
+        }
+
+        if (spawnedCount > 0 && enableDebugLogs)
+        {
+            Debug.Log($"🎯 在远离玩家的区块生成了 {spawnedCount} 只鲨鱼");
+        }
+    }
+
+    bool IsChunkFarFromPlayer(Vector2Int chunkPos, Vector2Int playerChunk)
+    {
+        // 计算区块距离（曼哈顿距离）
+        int distance = Mathf.Abs(chunkPos.x - playerChunk.x) + Mathf.Abs(chunkPos.y - playerChunk.y);
+        return distance >= 2; // 距离玩家至少2个区块
+    }
+
+    bool TrySpawnSharkInChunk(Vector2Int chunkPos)
+    {
+        // 计算区块中心位置
+        Vector3 chunkCenter = new Vector3(
+            chunkPos.x * terrainManager.chunkSize + terrainManager.chunkSize * 0.5f,
+            chunkPos.y * terrainManager.chunkSize + terrainManager.chunkSize * 0.5f,
+            0f
+        );
+
+        // 在区块内随机位置生成
+        Vector3 spawnPos = GetRandomPositionInChunk(chunkPos);
+        
+        GameObject shark = Instantiate(sharkPrefab, spawnPos, Quaternion.identity);
+        shark.transform.SetParent(transform);
+
+        // 设置鲨鱼信息
+        SharkController controller = shark.GetComponent<SharkController>();
+        if (controller != null)
+        {
+            controller.Initialize(chunkPos);
         }
         else
         {
-            if (isChasing)
+            Debug.LogError($"❌ 鲨鱼预制体缺少 SharkController 组件！");
+            Destroy(shark);
+            return false;
+        }
+
+        activeSharks.Add(shark);
+        return true;
+    }
+
+    Vector3 GetRandomPositionInChunk(Vector2Int chunkPos)
+    {
+        float chunkCenterX = chunkPos.x * terrainManager.chunkSize + terrainManager.chunkSize * 0.5f;
+        float chunkCenterY = chunkPos.y * terrainManager.chunkSize + terrainManager.chunkSize * 0.5f;
+        float halfChunk = terrainManager.chunkSize * 0.5f - 2f; // 留出边界
+
+        float randomX = Random.Range(-halfChunk, halfChunk);
+        float randomY = Random.Range(-halfChunk, halfChunk);
+
+        return new Vector3(chunkCenterX + randomX, chunkCenterY + randomY, 0f);
+    }
+
+    void CleanupSharksInUnloadedChunks()
+    {
+        var loadedChunks = terrainManager.GetActiveChunks();
+        
+        foreach (var shark in activeSharks.ToArray())
+        {
+            if (shark == null)
             {
-                StopChasing();
+                activeSharks.Remove(shark);
+                continue;
             }
-            Wander();
-        }
 
-        UpdateVisuals();
-        UpdateAudio();
-    }
-
-    void StartChasing()
-    {
-        isChasing = true;
-        currentSpeed = speed;
-        
-        // 播放追逐音效
-        if (chaseSound != null)
-        {
-            if (loopChaseSound)
+            SharkController controller = shark.GetComponent<SharkController>();
+            if (controller != null && controller.HomeChunk.HasValue)
             {
-                audioSource.clip = chaseSound;
-                audioSource.loop = true;
-                audioSource.Play();
-            }
-            else
-            {
-                audioSource.PlayOneShot(chaseSound);
-            }
-        }
-    }
-
-    void StopChasing()
-    {
-        isChasing = false;
-        currentSpeed = wanderSpeed;
-        
-        // 停止循环音效
-        if (loopChaseSound)
-        {
-            audioSource.Stop();
-        }
-        
-        hasPlayedAttackSound = false;
-    }
-
-    void ChasePlayer()
-    {
-        Vector3 toPlayer = (player.position - transform.position).normalized;
-        
-        // 根据移动类型限制追逐方向
-        Vector3 chaseDirection = GetConstrainedChaseDirection(toPlayer);
-        
-        transform.position += chaseDirection * speed * Time.deltaTime;
-        
-        // 平滑面向移动方向
-        float angle = Mathf.Atan2(chaseDirection.y, chaseDirection.x) * Mathf.Rad2Deg;
-        Quaternion targetRotation = Quaternion.Euler(0, 0, angle - 90f);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-
-        // 检查攻击距离
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-        if (distanceToPlayer < 10f && !hasPlayedAttackSound && attackSound != null)
-        {
-            audioSource.PlayOneShot(attackSound);
-            hasPlayedAttackSound = true;
-        }
-    }
-
-    Vector3 GetConstrainedChaseDirection(Vector3 desiredDirection)
-    {
-        switch (movementType)
-        {
-            case SharkMovementType.Horizontal:
-                return new Vector3(Mathf.Clamp(desiredDirection.x, -1f, 1f), 0f, 0f).normalized;
-                
-            case SharkMovementType.Vertical:
-                return new Vector3(0f, Mathf.Clamp(desiredDirection.y, -1f, 1f), 0f).normalized;
-                
-            case SharkMovementType.Free:
-                // 限制角度偏移
-                float angle = Vector3.SignedAngle(initialForward, desiredDirection, Vector3.forward);
-                float constrainedAngle = Mathf.Clamp(angle, -maxChaseAngle, maxChaseAngle);
-                return Quaternion.Euler(0, 0, constrainedAngle) * initialForward;
-                
-            default:
-                return desiredDirection;
-        }
-    }
-
-    void Wander()
-    {
-        // 定期改变漫游方向
-        if (Time.time >= wanderChangeTime)
-        {
-            switch (movementType)
-            {
-                case SharkMovementType.Horizontal:
-                    wanderDirection = Random.value > 0.5f ? Vector3.right : Vector3.left;
-                    break;
-                case SharkMovementType.Vertical:
-                    wanderDirection = Random.value > 0.5f ? Vector3.up : Vector3.down;
-                    break;
-                case SharkMovementType.Free:
-                    wanderDirection = Random.insideUnitCircle.normalized;
-                    break;
-            }
-            wanderChangeTime = Time.time + Random.Range(2f, 5f);
-        }
-
-        transform.position += wanderDirection * wanderSpeed * Time.deltaTime;
-
-        // 缓慢旋转
-        float wanderAngle = Mathf.Atan2(wanderDirection.y, wanderDirection.x) * Mathf.Rad2Deg;
-        Quaternion targetRotation = Quaternion.Euler(0, 0, wanderAngle - 90f);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * 0.5f * Time.deltaTime);
-    }
-
-    void UpdateVisuals()
-    {
-        if (spriteRenderer != null)
-        {
-            // 追逐时颜色变红
-            spriteRenderer.color = isChasing ? Color.Lerp(Color.white, Color.red, 0.3f) : Color.white;
-        }
-    }
-
-    void UpdateAudio()
-    {
-        if (isChasing && loopChaseSound && audioSource.isPlaying)
-        {
-            // 根据距离调整音量
-            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-            float volume = Mathf.Lerp(maxSoundVolume, minSoundVolume, distanceToPlayer / maxSoundDistance);
-            audioSource.volume = Mathf.Clamp01(volume);
-        }
-    }
-
-    bool IsOutsideCameraView()
-    {
-        if (targetCamera == null) return false;
-
-        Vector3 viewportPoint = targetCamera.WorldToViewportPoint(transform.position);
-        
-        // 检查是否在屏幕外（加上边距）
-        return viewportPoint.x < -destroyMargin || viewportPoint.x > 1 + destroyMargin ||
-               viewportPoint.y < -destroyMargin || viewportPoint.y > 1 + destroyMargin;
-    }
-
-    void DestroyShark()
-    {
-        Debug.Log($"🦈 鲨鱼离开视野，销毁: {gameObject.name}");
-        Destroy(gameObject);
-    }
-
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
-        {
-            RipplePushEffect player = collision.GetComponent<RipplePushEffect>();
-            if (player != null)
-            {
-                Debug.Log("💀 玩家被鲨鱼攻击！游戏结束");
-                
-                // 播放攻击音效
-                if (attackSound != null)
+                Vector2Int homeChunk = controller.HomeChunk.Value;
+                if (!loadedChunks.ContainsKey(homeChunk))
                 {
-                    audioSource.PlayOneShot(attackSound);
-                }
-                
-                // 触发游戏结束逻辑
-                SceneTransitionManager transitionManager = FindObjectOfType<SceneTransitionManager>();
-                if (transitionManager != null)
-                {
-                    transitionManager.ForceTransition();
-                }
-                else
-                {
-                    UnityEngine.SceneManagement.SceneManager.LoadScene(
-                        UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+                    // 鲨鱼所在的区块已卸载，销毁鲨鱼
+                    Destroy(shark);
+                    activeSharks.Remove(shark);
+                    if (enableDebugLogs)
+                    {
+                        Debug.Log($"🗑️ 区块卸载，销毁鲨鱼: {shark.name}");
+                    }
                 }
             }
         }
     }
 
-    // 调试信息
-    void OnDrawGizmosSelected()
+    // 获取当前活跃鲨鱼数量
+    public int GetActiveSharkCount()
     {
-        // 绘制追逐范围
-        Gizmos.color = isChasing ? Color.red : Color.gray;
-        Gizmos.DrawWireSphere(transform.position, chaseDistance);
+        return activeSharks.Count;
+    }
 
-        // 绘制移动方向
-        Gizmos.color = Color.blue;
-        Gizmos.DrawRay(transform.position, transform.up * 3f);
+    [ContextMenu("生成测试鲨鱼")]
+    public void SpawnTestSharks()
+    {
+        if (terrainManager == null) return;
 
-        // 绘制移动限制
-        if (movementType != SharkMovementType.Free)
+        var loadedChunks = terrainManager.GetActiveChunks();
+        int count = 0;
+        
+        foreach (var chunkPair in loadedChunks)
         {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawRay(transform.position, initialForward * 5f);
-            
-            if (movementType == SharkMovementType.Horizontal)
+            if (count >= 2) break;
+            if (TrySpawnSharkInChunk(chunkPair.Key))
             {
-                Gizmos.DrawLine(transform.position - Vector3.up * 2f, transform.position + Vector3.up * 2f);
+                count++;
             }
-            else if (movementType == SharkMovementType.Vertical)
+        }
+    }
+
+    [ContextMenu("重置所有鲨鱼")]
+    public void ResetAllSharks()
+    {
+        foreach (var shark in activeSharks)
+        {
+            if (shark != null)
+                Destroy(shark);
+        }
+        activeSharks.Clear();
+        Debug.Log("🔄 重置所有鲨鱼");
+    }
+
+    [ContextMenu("显示生成器状态")]
+    public void ShowSpawnerStatus()
+    {
+        Debug.Log($"📊 鲨鱼生成器状态:");
+        Debug.Log($"   当前鲨鱼数量: {activeSharks.Count}/{maxSharks}");
+        Debug.Log($"   已加载区块数: {terrainManager.GetActiveChunks().Count}");
+        
+        foreach (var shark in activeSharks)
+        {
+            if (shark != null)
             {
-                Gizmos.DrawLine(transform.position - Vector3.right * 2f, transform.position + Vector3.right * 2f);
+                SharkController controller = shark.GetComponent<SharkController>();
+                if (controller != null && controller.HomeChunk.HasValue)
+                {
+                    Debug.Log($"   🦈 {shark.name} - 所在区块: {controller.HomeChunk.Value}");
+                }
             }
         }
     }
