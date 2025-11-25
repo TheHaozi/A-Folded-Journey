@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class FloatingLog : MonoBehaviour
 {
-    [Header("浮木基础设置")]
+    [Header("基础设置")]
     public float baseSpeed = 1f;
     public float speedVariation = 0.5f;
     
@@ -19,6 +19,7 @@ public class FloatingLog : MonoBehaviour
     [Header("旋转效果")]
     public float rotationSway = 8f;
     public float rotationSmoothness = 3f;
+
     
     // 组件引用
     private SpriteRenderer spriteRenderer;
