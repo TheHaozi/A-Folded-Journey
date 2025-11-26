@@ -7365,7 +7365,7 @@ MonoBehaviour:
   bounceForceMultiplier: 0.8
   minBounceVelocity: 2
   enableBounce: 1
-  enableDebugControls: 1
+  enableDebugControls: 0
   moveSpeed: 8
   rotationSpeed: 5
   acceleration: 12

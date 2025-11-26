@@ -13731,7 +13731,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d823e881b0378d94f867b9254bda8918, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxCollisions: 30
+  maxCollisions: 50
   fadeDuration: 1
   livesText: {fileID: 1352498822}
   livesFormat: 'Durability: {0}'

@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad582ed2798ebaf4882c0dd9e65304f6, type: 3}
+  m_Name: Ice Data
+  m_EditorClassIdentifier: 
+  iceSprites:
+  - {fileID: 21300000, guid: d0a6c6a6ec8eeb243813e49a59f2d632, type: 3}
+  - {fileID: 21300000, guid: 9c536b0855f632b41875d6fe4b65725b, type: 3}
+  - {fileID: 21300000, guid: 53d867a60ed0e8a44b07d3def41a89d3, type: 3}
+  - {fileID: 21300000, guid: 57e7ffa457559514cb792026e045d05a, type: 3}
+  clickSound: {fileID: 8300000, guid: 00beeeee10d3cd247b022a2a7e7cda77, type: 3}
+  destroySound: {fileID: 8300000, guid: bb0f0776525af0c428a94d23bc6df1c0, type: 3}
+  clickEffectScale: 1.05
+  clickEffectDuration: 0.1
+  enableClickEffect: 1
