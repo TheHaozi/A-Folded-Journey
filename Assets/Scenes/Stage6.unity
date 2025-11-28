@@ -13622,7 +13622,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 512
   useRandomColors: 0
-  fixedColor: {r: 0.5510659, g: 0.7809932, b: 0.93710685, a: 1}
+  fixedColor: {r: 0.7786084, g: 0.8835804, b: 0.9559748, a: 1}
   enableReflection: 1
   reflectionPrefab: {fileID: 755540490399042947, guid: 09e18bac57080574b8bd2f82a6437405, type: 3}
   wallLayers:

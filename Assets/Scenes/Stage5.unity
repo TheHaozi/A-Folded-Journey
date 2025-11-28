@@ -1443,13 +1443,13 @@ MonoBehaviour:
     message: Shark infested waters ahead!
     color: {r: 1, g: 1, b: 1, a: 1}
   - distance: 200
-    message: Keep going! You're doing great!
+    message: 'Keep going! '
     color: {r: 1, g: 1, b: 1, a: 1}
   - distance: 400
-    message: Halfway there! Stay strong!
+    message: Halfway there.
     color: {r: 1, g: 1, b: 1, a: 1}
   - distance: 700
-    message: Almost there! Final push!
+    message: Almost there, Final push!
     color: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

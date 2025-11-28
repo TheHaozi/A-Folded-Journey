@@ -1752,7 +1752,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: cd945dc9262f0ae4e84786a9709a98c7, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 3e01b6e176aa5284b9fa817b2343d5b1, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -3203,7 +3203,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   subtitleText: At night, you can illuminate the road with a flash of light from
-    ripples, or catch fireflies.
+    fireflies.
   fontAsset: {fileID: 11400000, guid: 8a45e472d515148419dad1a7e05175d5, type: 2}
   fontSize: 48
   textColor: {r: 1, g: 1, b: 1, a: 1}
